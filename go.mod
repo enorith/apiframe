@@ -3,7 +3,7 @@ module github.com/enorith/apiframe
 go 1.21.5
 
 require (
-	github.com/enorith/framework v0.1.18
+	github.com/enorith/framework v0.1.20
 	github.com/enorith/gormdb v0.1.1
 	github.com/enorith/http v1.2.3
 	github.com/enorith/language v0.0.2
@@ -23,7 +23,6 @@ require (
 	github.com/enorith/exception v0.0.2 // indirect
 	github.com/enorith/logging v0.0.8 // indirect
 	github.com/go-errors/errors v1.4.1 // indirect
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
@@ -38,5 +37,4 @@ require (
 	go.uber.org/zap v1.19.1 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/mysql v1.3.3 // indirect
 )
