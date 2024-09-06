@@ -167,11 +167,11 @@ func WithSaveHandler[U Model]() {
 
 				var err error
 				if model == nil && id > 0 {
-					tx.Where(define.PK+" = ?", id)
+					tx = tx.Where(define.PK+" = ?", id)
 				}
 
 				if model == nil {
-					tx.Table(define.Table)
+					tx = tx.Table(define.Table)
 				}
 
 				tx.Omit(clause.Associations)
