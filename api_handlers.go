@@ -54,7 +54,7 @@ func WithListHandler[U Model]() {
 		selects := []string{qPk}
 
 		for _, field := range apiModel.Query.Fields {
-			if field.Omit && field.Name == pk {
+			if field.Omit || field.Name == pk {
 				continue
 			}
 			selects = append(selects, field.Name)

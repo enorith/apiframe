@@ -23,6 +23,7 @@ type QueryField struct {
 	Required bool   `json:"required"`
 	Omit     bool   `json:"omit"`
 	Sorter   bool   `json:"sorter"`
+	Hidden   bool   `json:"hidden"`
 }
 
 const (
@@ -41,6 +42,12 @@ type QueryDefine struct {
 	WithCreate  bool         `json:"with_create"`
 	WithEdit    bool         `json:"with_edit"`
 	WithDelete  bool         `json:"with_delete"`
+}
+
+type JoinDefine struct {
+	Table  string       `json:"table"` // 表名
+	Fields []QueryField `json:"fields"`
+	Type   string       `json:"type"`
 }
 
 // Scan assigns a value from a database driver.
@@ -85,11 +92,12 @@ type OpenApi struct {
 	content.Request `gorm:"-" json:"-"`
 	ID              int64 `gorm:"column:id;primaryKey;not null;type:int;autoIncrement" json:"id"`
 
-	GUID    string      `gorm:"column:guid;type:varchar(64);index:idx_guid;uniqueIndex:idx_unique_guid" json:"guid"`
-	Query   QueryDefine `gorm:"column:query;type:text" json:"query" input:"query"`
-	Enabled bool        `gorm:"column:enabled;type:tinyint;default:1;comment:是否启用" json:"enabled" input:"enabled"`
-	Remarks string      `gorm:"column:remarks;type:varchar(255)" json:"remarks" input:"remarks"`
-	Preset  bool        `gorm:"column:preset;type:tinyint;default:0;comment:系统预设" json:"preset"`
+	GUID    string       `gorm:"column:guid;type:varchar(64);index:idx_guid;uniqueIndex:idx_unique_guid" json:"guid"`
+	Query   QueryDefine  `gorm:"column:query;type:text" json:"query" input:"query"`
+	Joins   []JoinDefine `gorm:"column:joins;type:text" json:"joins" input:"joins"`
+	Enabled bool         `gorm:"column:enabled;type:tinyint;default:1;comment:是否启用" json:"enabled" input:"enabled"`
+	Remarks string       `gorm:"column:remarks;type:varchar(255)" json:"remarks" input:"remarks"`
+	Preset  bool         `gorm:"column:preset;type:tinyint;default:0;comment:系统预设" json:"preset"`
 
 	WithModel bool `gorm:"column:with_model;type:tinyint;default:1;comment:是否使用模型" json:"with_model"`
 	WithAuth  bool `gorm:"column:with_auth;type:tinyint;default:1;comment:是否需要登录" json:"with_auth"`
