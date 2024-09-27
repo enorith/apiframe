@@ -96,7 +96,10 @@ func (OpenApiHandler[U]) Handle(req OpenApiHandleRequest[U], user U, db *gorm.DB
 				mt := reflect.TypeOf(model)
 				mvp := reflect.New(mt)
 				v := mvp.Interface()
-				req.Data.Unmarshal(&v)
+				e = req.Data.Unmarshal(&v)
+				if e != nil {
+					return content.ErrResponseFromError(e, 500, nil)
+				}
 				// 	defIdx := reflection.SubStructOf(model, models.WithDefaultColumns{})
 
 				// 	if defIdx != -1 {
