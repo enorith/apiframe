@@ -218,12 +218,19 @@ func WithSaveHandler[U Model]() {
 				return model, err
 			})
 		} else {
+			var mapData = make(map[string]any, 0)
+			e = req.Data.Unmarshal(&mapData)
+
+			if e != nil {
+				return nil, e
+			}
+
 			data, e = callSave(func(tx *gorm.DB, selects []string, update bool) (any, error) {
 				if update {
-					return req.Data, tx.Updates(req.Data).Error
+					return req.Data, tx.Updates(mapData).Error
 				}
 
-				return req.Data, tx.Create(req.Data).Error
+				return req.Data, tx.Create(mapData).Error
 			})
 		}
 
