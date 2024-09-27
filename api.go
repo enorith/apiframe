@@ -92,7 +92,6 @@ func (OpenApiHandler[U]) Handle(req OpenApiHandleRequest[U], user U, db *gorm.DB
 			dataRaw := req.Data.GetRaw()
 
 			if dataRaw != nil {
-				validateError := make(validation.ValidateError)
 				mt := reflect.TypeOf(model)
 				mvp := reflect.New(mt)
 				v := mvp.Interface()
@@ -117,26 +116,31 @@ func (OpenApiHandler[U]) Handle(req OpenApiHandleRequest[U], user U, db *gorm.DB
 
 				model = v
 
-				if validated, ok := v.(validation.WithValidation); ok {
-					rules := validated.Rules()
-					for attribute, rules := range rules {
-						source := content.JsonInput(dataRaw)
-						errs := validation.DefaultValidator.PassesRules(source, attribute, rules)
-						if len(errs) > 0 {
-							validateError[attribute] = errs
+				if req.Type == QueryTypeSave {
+					validateError := make(validation.ValidateError)
+
+					if validated, ok := v.(validation.WithValidation); ok {
+						rules := validated.Rules()
+						for attribute, rules := range rules {
+							source := content.JsonInput(dataRaw)
+							errs := validation.DefaultValidator.PassesRules(source, attribute, rules)
+							if len(errs) > 0 {
+								validateError[attribute] = errs
+							}
 						}
 					}
-				}
 
-				if len(validateError) > 0 {
-					return content.JsonResponse(ErrorResp{
-						Code:    422,
-						Message: validateError.Error(),
-						Errors:  validateError,
-					}, 422, nil)
+					if len(validateError) > 0 {
+						return content.JsonResponse(ErrorResp{
+							Code:    422,
+							Message: validateError.Error(),
+							Errors:  validateError,
+						}, 422, nil)
+					}
 				}
 			}
 		}
+
 		data, e = handle(req, api, db, model)
 	} else {
 		data, e = handle(req, api, db, nil)

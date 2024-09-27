@@ -48,12 +48,13 @@ func WithListHandler[U Model]() {
 		newTx := dbl.Session(&gorm.Session{
 			NewDB: true,
 		})
+		pk := apiModel.Query.PK
 		qPk := fmt.Sprintf("%s.%s", apiModel.Query.Table, apiModel.Query.PK)
 
 		selects := []string{qPk}
 
 		for _, field := range apiModel.Query.Fields {
-			if field.Omit {
+			if field.Omit || field.Name == pk {
 				continue
 			}
 			selects = append(selects, field.Name)
@@ -167,11 +168,11 @@ func WithSaveHandler[U Model]() {
 
 				var err error
 				if model == nil && id > 0 {
-					tx.Where(define.PK+" = ?", id)
+					tx = tx.Where(define.PK+" = ?", id)
 				}
 
 				if model == nil {
-					tx.Table(define.Table)
+					tx = tx.Table(define.Table)
 				}
 
 				tx.Omit(clause.Associations)
@@ -287,7 +288,7 @@ func WithDetailHandler[U Model]() {
 			if qs, ok := model.(ApiModelWithQueryScope[U]); ok {
 				dbc = dbc.Scopes(qs.WithQueryScope(req))
 			}
-			e = dbc.First(model, qPk+"= ?", id).Error
+			e = dbc.First(model).Error
 
 			return model, e
 		}
