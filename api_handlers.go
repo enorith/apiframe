@@ -48,10 +48,13 @@ func WithListHandler[U Model]() {
 		newTx := dbl.Session(&gorm.Session{
 			NewDB: true,
 		})
-		pk := apiModel.Query.PK
-		qPk := fmt.Sprintf("%s.%s", apiModel.Query.Table, apiModel.Query.PK)
 
-		selects := []string{qPk}
+		pk := apiModel.Query.PK
+		selects := make([]string, 0)
+		if pk != "" {
+			qPk := fmt.Sprintf("%s.%s", apiModel.Query.Table, apiModel.Query.PK)
+			selects = append(selects, qPk)
+		}
 
 		for _, field := range apiModel.Query.Fields {
 			if field.Omit || field.Name == pk {
