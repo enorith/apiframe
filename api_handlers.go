@@ -51,8 +51,9 @@ func WithListHandler[U Model]() {
 
 		pk := apiModel.Query.PK
 		selects := make([]string, 0)
+		var qPk string
 		if pk != "" {
-			qPk := fmt.Sprintf("%s.%s", apiModel.Query.Table, apiModel.Query.PK)
+			qPk = fmt.Sprintf("%s.%s", apiModel.Query.Table, apiModel.Query.PK)
 			selects = append(selects, qPk)
 		}
 
@@ -93,6 +94,10 @@ func WithListHandler[U Model]() {
 			countSelect := qPk
 			if apiModel.Query.CountSelect != "" {
 				countSelect = apiModel.Query.CountSelect
+			}
+
+			if countSelect == "" {
+				return d
 			}
 
 			return d.Select(countSelect)
