@@ -107,7 +107,12 @@ func WithListHandler[U Model]() {
 		}
 
 		callFind := func(v interface{}) error {
-			return dbutil.ApplySorts(dbl.Session(&gorm.Session{}), req.Sort, qPk+" DESC").Limit(req.PerPage).Offset((page - 1) * req.PerPage).Find(v).Error
+			var defSorts []string
+			if qPk != "" {
+				defSorts = append(defSorts, qPk+" DESC")
+			}
+
+			return dbutil.ApplySorts(dbl.Session(&gorm.Session{}), req.Sort, defSorts...).Limit(req.PerPage).Offset((page - 1) * req.PerPage).Find(v).Error
 		}
 
 		data := make([]any, 0)
