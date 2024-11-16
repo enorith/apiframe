@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"strings"
 
 	"github.com/enorith/gormdb"
 	"github.com/enorith/supports/dbutil"
+	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -43,6 +45,7 @@ func WithListHandler[U Model]() {
 			if qs, ok := v.(ApiModelWithQueryScope[U]); ok {
 				dbl = dbl.Scopes(qs.WithQueryScope(req))
 			}
+			dbl = dbl.Scopes(WithLoadRelations(apiModel.Query.Fields))
 		}
 
 		newTx := dbl.Session(&gorm.Session{
@@ -61,7 +64,9 @@ func WithListHandler[U Model]() {
 			if field.Omit || field.Name == pk {
 				continue
 			}
-			selects = append(selects, field.Name)
+			if !strings.Contains(field.Name, ".") {
+				selects = append(selects, field.Name)
+			}
 		}
 
 		dbl = dbutil.ApplyFilters(dbl.Table(apiModel.Query.Table).Select(selects), req.Filters)
@@ -112,7 +117,7 @@ func WithListHandler[U Model]() {
 				defSorts = append(defSorts, qPk+" DESC")
 			}
 
-			return dbutil.ApplySorts(dbl.Session(&gorm.Session{}), req.Sort, defSorts...).Limit(req.PerPage).Offset((page - 1) * req.PerPage).Find(v).Error
+			return dbutil.ApplySorts(dbl.Session(&gorm.Session{}), req.Sort, defSorts...).Limit(perPage).Offset((page - 1) * perPage).Find(v).Error
 		}
 
 		data := make([]any, 0)
@@ -147,6 +152,41 @@ func WithListHandler[U Model]() {
 			"data": data,
 		}, nil
 	})
+}
+
+func printJson(v any) {
+	data, _ := jsoniter.MarshalIndent(v, "", "  ")
+	fmt.Println(string(data))
+}
+
+func ucfirst(s string) string {
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
+func WithLoadRelations(fields []QueryField) func(*gorm.DB) *gorm.DB {
+	relations := make(map[string][]string, 0)
+	for _, field := range fields {
+		if field.Omit {
+			continue
+		}
+
+		if strings.Contains(field.Name, ".") {
+			parts := strings.SplitN(field.Name, ".", 2)
+			key := ucfirst(parts[0])
+			relations[key] = append(relations[key], parts[1])
+		}
+	}
+
+	return func(db *gorm.DB) *gorm.DB {
+
+		for k, v := range relations {
+			db = db.Preload(k, func(tx *gorm.DB) *gorm.DB {
+				return tx.Select(v)
+			})
+		}
+
+		return db
+	}
 }
 
 func WithSaveHandler[U Model]() {
