@@ -193,7 +193,7 @@ func WithLoadRelations(fields []QueryField) func(*gorm.DB) *gorm.DB {
 			relations[key] = append(relations[key], parts[1])
 		}
 	}
-	printJson(relations)
+	// printJson(relations)
 
 	return func(db *gorm.DB) *gorm.DB {
 
@@ -362,7 +362,7 @@ func WithDetailHandler[U Model]() {
 		var id int64
 		req.Data.Get(define.PK, &id)
 		if model != nil {
-			dbc = dbc.Model(model)
+			dbc = dbc.Model(model).Scopes(WithLoadRelations(define.Fields))
 			if qs, ok := model.(ApiModelWithQueryScope[U]); ok {
 				dbc = dbc.Scopes(qs.WithQueryScope(req))
 			}
