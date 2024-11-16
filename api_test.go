@@ -15,10 +15,10 @@ func TestLoadRelation(t *testing.T) {
 			Name: "user.id",
 		},
 		{
-			Name: "profile.id",
+			Name: "profile_user.id",
 		},
 		{
-			Name: "profile.age",
+			Name: "profile_user.age",
 		},
 	})
 }

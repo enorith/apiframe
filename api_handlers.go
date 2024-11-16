@@ -163,6 +163,23 @@ func ucfirst(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
+// ConvertSnakeToCamel converts a snake_case string to camelCase.
+func snakeToCamel(s string) string {
+	// Split the string by underscores
+	words := strings.Split(s, "_")
+
+	// Lowercase the first word
+	// words[0] = strings.ToLower(words[0])
+
+	// Capitalize the first letter of each subsequent word
+	for i := 0; i < len(words); i++ {
+		words[i] = ucfirst(words[i])
+	}
+
+	// Join the words together into a single string
+	return strings.Join(words, "")
+}
+
 func WithLoadRelations(fields []QueryField) func(*gorm.DB) *gorm.DB {
 	relations := make(map[string][]string, 0)
 	for _, field := range fields {
@@ -172,10 +189,11 @@ func WithLoadRelations(fields []QueryField) func(*gorm.DB) *gorm.DB {
 
 		if strings.Contains(field.Name, ".") {
 			parts := strings.SplitN(field.Name, ".", 2)
-			key := ucfirst(parts[0])
+			key := snakeToCamel(parts[0])
 			relations[key] = append(relations[key], parts[1])
 		}
 	}
+	printJson(relations)
 
 	return func(db *gorm.DB) *gorm.DB {
 
