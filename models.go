@@ -24,6 +24,7 @@ type QueryField struct {
 	Omit     bool   `json:"omit"`
 	Sorter   bool   `json:"sorter"`
 	Hidden   bool   `json:"hidden"`
+	Joined   bool   `json:"joined"`
 }
 
 const (
@@ -42,6 +43,7 @@ type QueryDefine struct {
 	WithCreate  bool         `json:"with_create"`
 	WithEdit    bool         `json:"with_edit"`
 	WithDelete  bool         `json:"with_delete"`
+	WithoutPage bool         `json:"without_page"`
 }
 
 type JoinDefine struct {

@@ -23,6 +23,7 @@ func WithListHandler[U Model]() {
 		LastPage int             `json:"last_page"`
 		From     int             `json:"from"`
 		To       int             `json:"to"`
+		Pageless bool            `json:"pageless"`
 		Fields   []QueryField    `json:"fields"`
 		Permits  map[string]bool `json:"permits"`
 	}
@@ -48,8 +49,8 @@ func WithListHandler[U Model]() {
 			if field.Omit || field.Name == pk {
 				continue
 			}
-			if !strings.Contains(field.Name, ".") {
-				selects = append(selects, field.Name)
+			if !strings.Contains(field.Name, ".") || field.Joined {
+				selects = append(selects, fmt.Sprintf("%s.%s", apiModel.Query.Table, field.Name))
 			}
 		}
 
@@ -82,11 +83,12 @@ func WithListHandler[U Model]() {
 		if perPage < 1 {
 			perPage = DefaultPageSize
 		}
-
+		withoutPage := apiModel.Query.WithoutPage
 		meta.Page = page
 		meta.PerPage = perPage
 		meta.From = perPage*(page-1) + 1
 		meta.Fields = apiModel.Query.Fields
+		meta.Pageless = withoutPage
 
 		meta.Permits = map[string]bool{
 			"list":   true,
@@ -119,8 +121,13 @@ func WithListHandler[U Model]() {
 			if qPk != "" {
 				defSorts = append(defSorts, qPk+" DESC")
 			}
+			tx := dbutil.ApplySorts(dbl.Session(&gorm.Session{}), req.Sort, defSorts...)
 
-			return dbutil.ApplySorts(dbl.Session(&gorm.Session{}), req.Sort, defSorts...).Limit(perPage).Offset((page - 1) * perPage).Find(v).Error
+			if withoutPage {
+				return tx.Find(v).Error
+			}
+
+			return tx.Limit(perPage).Offset((page - 1) * perPage).Find(v).Error
 		}
 
 		data := make([]any, 0)
@@ -148,7 +155,7 @@ func WithListHandler[U Model]() {
 		}
 
 		meta.LastPage = int(math.Ceil(float64(meta.Total) / float64(perPage)))
-		meta.To = meta.From + int(db.RowsAffected-1)
+		meta.To = meta.From + int(dbl.RowsAffected-1)
 
 		return map[string]any{
 			"meta": meta,
