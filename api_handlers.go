@@ -198,8 +198,9 @@ func WithLoadRelations(fields []QueryField) func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 
 		for k, v := range relations {
+			vt := v
 			db = db.Preload(k, func(tx *gorm.DB) *gorm.DB {
-				return tx.Select(v)
+				return tx.Select(vt)
 			})
 		}
 
