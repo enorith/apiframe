@@ -36,22 +36,6 @@ func WithListHandler[U Model]() {
 		var (
 			meta PageMeta
 		)
-
-		if model != nil {
-			mt := reflect.TypeOf(model)
-
-			v := reflect.New(mt).Interface()
-			dbl = dbl.Model(v)
-			if qs, ok := v.(ApiModelWithQueryScope[U]); ok {
-				dbl = dbl.Scopes(qs.WithQueryScope(req))
-			}
-			dbl = dbl.Scopes(WithLoadRelations(apiModel.Query.Fields))
-		}
-
-		newTx := dbl.Session(&gorm.Session{
-			NewDB: true,
-		})
-
 		pk := apiModel.Query.PK
 		selects := make([]string, 0)
 		var qPk string
@@ -68,6 +52,25 @@ func WithListHandler[U Model]() {
 				selects = append(selects, field.Name)
 			}
 		}
+
+		if model != nil {
+			mt := reflect.TypeOf(model)
+
+			v := reflect.New(mt).Interface()
+			dbl = dbl.Model(v)
+			if qs, ok := v.(ApiModelWithQueryScope[U]); ok {
+				dbl = dbl.Scopes(qs.WithQueryScope(req))
+			}
+			dbl = dbl.Scopes(WithLoadRelations(apiModel.Query.Fields))
+
+			if qsl, ok := v.(ApiModelQuerySelect[U]); ok {
+				selects = append(selects, qsl.WithQuerySelect(req)...)
+			}
+		}
+
+		newTx := dbl.Session(&gorm.Session{
+			NewDB: true,
+		})
 
 		dbl = dbutil.ApplyFilters(dbl.Table(apiModel.Query.Table).Select(selects), req.Filters)
 

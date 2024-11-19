@@ -11,6 +11,9 @@ type ApiModelBeforeSave[U Model] interface {
 type ApiModelSaveControl[U Model] interface {
 	ModelSaveControl(selects []string, req OpenApiHandleRequest[U]) []string
 }
+type ApiModelQuerySelect[U Model] interface {
+	WithQuerySelect(req OpenApiHandleRequest[U]) []string
+}
 
 type ApiModelAfterSave[U Model] interface {
 	AfterModelSave(tx *gorm.DB, req OpenApiHandleRequest[U]) error
