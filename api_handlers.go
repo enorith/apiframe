@@ -50,7 +50,12 @@ func WithListHandler[U Model]() {
 				continue
 			}
 			if !strings.Contains(field.Name, ".") || field.Joined {
-				selects = append(selects, fmt.Sprintf("%s.%s", apiModel.Query.Table, field.Name))
+				fn := fmt.Sprintf("%s.%s", apiModel.Query.Table, field.Name)
+				if field.Joined {
+					fn = field.Name
+				}
+
+				selects = append(selects, fn)
 			}
 		}
 
